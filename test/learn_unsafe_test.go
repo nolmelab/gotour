@@ -195,8 +195,17 @@ func TestSafePattern3(t *testing.T) {
 }
 
 func TestSafePattern4(t *testing.T) {
+	// Pattern 4. convert unsafe pointers to uintptr values as arguments
+	// of syscall.Syscall calls
 
+	// 컴파일러가 Syscall을 특수하게 다루고 해당 포인터를 보호한다.
+	// magic!은 항상 이해가 어렵다. 블랙박스.
 }
+
+// 더 공부를 하는 것은 연습을 하면서 보도록 한다.
+// 이 아티클에서 얻을 수 있는 것은 이 정도이다. 무엇?
+// - unsafe.Pointer와 uintptr로 C 수준의 포인터 연산이 가능하다.
+// - GC와 스택 크기 변경 등으로 더 주의해야 한다.
 
 func TestUnsafeSwapBytes(t *testing.T) {
 
