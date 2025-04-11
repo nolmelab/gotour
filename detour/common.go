@@ -20,6 +20,7 @@ package detour
 
 import (
 	"math"
+	"math/bits"
 	"unsafe"
 )
 
@@ -67,13 +68,13 @@ const EPSILON = 0.00001
 // / Swaps the values of the two parameters.
 // /  @param[in,out]	a	Value A
 // /  @param[in,out]	b	Value B
-func Swap(a *float32, b *float32) { t := *a; *a = *b; *b = t }
+func Swap(a, b *float32) { t := *a; *a = *b; *b = t }
 
 // / Returns the minimum of two values.
 // /  @param[in]		a	Value A
 // /  @param[in]		b	Value B
 // /  @return The minimum of the two values.
-func Min(a float32, b float32) float32 {
+func Min(a, b float32) float32 {
 	if a < b {
 		return a
 	}
@@ -84,7 +85,7 @@ func Min(a float32, b float32) float32 {
 // /  @param[in]		a	Value A
 // /  @param[in]		b	Value B
 // /  @return The maximum of the two values.
-func Max(a float32, b float32) float32 {
+func Max(a, b float32) float32 {
 	if a > b {
 		return a
 	}
@@ -111,7 +112,7 @@ func Sqr(a float32) float32 { return a * a }
 // /  @param[in]		mn	The minimum permitted return value.
 // /  @param[in]		mx	The maximum permitted return value.
 // /  @return The value, clamped to the specified range.
-func Clamp(v float32, mn float32, mx float32) float32 {
+func Clamp(v, mn, mx float32) float32 {
 	if v < mn {
 		return mn
 	}
@@ -136,7 +137,7 @@ func Sqrt(x float32) float32 {
 // /  @param[out]	dest	The cross product. [(x, y, z)]
 // /  @param[in]		v1		A Vector [(x, y, z)]
 // /  @param[in]		v2		A vector [(x, y, z)]
-func Vcross(dest []float32, v1 []float32, v2 []float32) {
+func Vcross(dest, v1, v2 []float32) {
 	dest[0] = v1[1]*v2[2] - v1[2]*v2[1]
 	dest[1] = v1[2]*v2[0] - v1[0]*v2[2]
 	dest[2] = v1[0]*v2[1] - v1[1]*v2[0]
@@ -146,7 +147,7 @@ func Vcross(dest []float32, v1 []float32, v2 []float32) {
 // /  @param[in]		v1	A Vector [(x, y, z)]
 // /  @param[in]		v2	A vector [(x, y, z)]
 // / @return The dot product.
-func Vdot(v1 []float32, v2 []float32) float32 {
+func Vdot(v1, v2 []float32) float32 {
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2]
 }
 
@@ -155,7 +156,7 @@ func Vdot(v1 []float32, v2 []float32) float32 {
 // /  @param[in]		v1		The base vector. [(x, y, z)]
 // /  @param[in]		v2		The vector to scale and add to @p v1. [(x, y, z)]
 // /  @param[in]		s		The amount to scale @p v2 by before adding to @p v1.
-func Vmad(dest []float32, v1 []float32, v2 []float32, s float32) {
+func Vmad(dest, v1, v2 []float32, s float32) {
 	dest[0] = v1[0] + v2[0]*s
 	dest[1] = v1[1] + v2[1]*s
 	dest[2] = v1[2] + v2[2]*s
@@ -166,7 +167,7 @@ func Vmad(dest []float32, v1 []float32, v2 []float32, s float32) {
 // /  @param[in]		v1		The starting vector.
 // /  @param[in]		v2		The destination vector.
 // /	 @param[in]		t		The interpolation factor. [Limits: 0 <= value <= 1.0]
-func Vlerp(dest []float32, v1 []float32, v2 []float32, t float32) {
+func Vlerp(dest, v1, v2 []float32, t float32) {
 	dest[0] = v1[0] + (v2[0]-v1[0])*t
 	dest[1] = v1[1] + (v2[1]-v1[1])*t
 	dest[2] = v1[2] + (v2[2]-v1[2])*t
@@ -176,7 +177,7 @@ func Vlerp(dest []float32, v1 []float32, v2 []float32, t float32) {
 // /  @param[out]	dest	The result vector. [(x, y, z)]
 // /  @param[in]		v1		The base vector. [(x, y, z)]
 // /  @param[in]		v2		The vector to add to @p v1. [(x, y, z)]
-func Vadd(dest []float32, v1 []float32, v2 []float32) {
+func Vadd(dest, v1, v2 []float32) {
 	dest[0] = v1[0] + v2[0]
 	dest[1] = v1[1] + v2[1]
 	dest[2] = v1[2] + v2[2]
@@ -186,7 +187,7 @@ func Vadd(dest []float32, v1 []float32, v2 []float32) {
 // /  @param[out]	dest	The result vector. [(x, y, z)]
 // /  @param[in]		v1		The base vector. [(x, y, z)]
 // /  @param[in]		v2		The vector to subtract from @p v1. [(x, y, z)]
-func Vsub(dest []float32, v1 []float32, v2 []float32) {
+func Vsub(dest, v1, v2 []float32) {
 	dest[0] = v1[0] - v2[0]
 	dest[1] = v1[1] - v2[1]
 	dest[2] = v1[2] - v2[2]
@@ -196,7 +197,7 @@ func Vsub(dest []float32, v1 []float32, v2 []float32) {
 // /  @param[out]	dest	The result vector. [(x, y, z)]
 // /  @param[in]		v		The vector to scale. [(x, y, z)]
 // /  @param[in]		t		The scaling factor.
-func Vscale(dest []float32, v []float32, t float32) {
+func Vscale(dest, v []float32, t float32) {
 	dest[0] = v[0] * t
 	dest[1] = v[1] * t
 	dest[2] = v[2] * t
@@ -205,7 +206,7 @@ func Vscale(dest []float32, v []float32, t float32) {
 // / Selects the minimum value of each element from the specified vectors.
 // /  @param[in,out]	mn	A vector.  (Will be updated with the result.) [(x, y, z)]
 // /  @param[in]	v	A vector. [(x, y, z)]
-func Vmin(mn []float32, v []float32) {
+func Vmin(mn, v []float32) {
 	mn[0] = Min(mn[0], v[0])
 	mn[1] = Min(mn[1], v[1])
 	mn[2] = Min(mn[2], v[2])
@@ -214,7 +215,7 @@ func Vmin(mn []float32, v []float32) {
 // / Selects the maximum value of each element from the specified vectors.
 // /  @param[in,out]	mx	A vector.  (Will be updated with the result.) [(x, y, z)]
 // /  @param[in]		v	A vector. [(x, y, z)]
-func Vmax(mx []float32, v []float32) {
+func Vmax(mx, v []float32) {
 	mx[0] = Max(mx[0], v[0])
 	mx[1] = Max(mx[1], v[1])
 	mx[2] = Max(mx[2], v[2])
@@ -234,7 +235,7 @@ func Vset(dest []float32, x, y, z float32) {
 // / Performs a vector copy.
 // /  @param[out]	dest	The result. [(x, y, z)]
 // /  @param[in]		a		The vector to copy. [(x, y, z)]
-func Vcopy(dest []float32, a []float32) {
+func Vcopy(dest, a []float32) {
 	dest[0] = a[0]
 	dest[1] = a[1]
 	dest[2] = a[2]
@@ -258,7 +259,7 @@ func VlenSqr(v []float32) float32 {
 // /  @param[in]		v1	A point. [(x, y, z)]
 // /  @param[in]		v2	A point. [(x, y, z)]
 // / @return The distance between the two points.
-func Vdist(v1 []float32, v2 []float32) float32 {
+func Vdist(v1, v2 []float32) float32 {
 	dx := v2[0] - v1[0]
 	dy := v2[1] - v1[1]
 	dz := v2[2] - v1[2]
@@ -269,7 +270,7 @@ func Vdist(v1 []float32, v2 []float32) float32 {
 // /  @param[in]		v1	A point. [(x, y, z)]
 // /  @param[in]		v2	A point. [(x, y, z)]
 // / @return The square of the distance between the two points.
-func VdistSqr(v1 []float32, v2 []float32) float32 {
+func VdistSqr(v1, v2 []float32) float32 {
 	dx := v2[0] - v1[0]
 	dy := v2[1] - v1[1]
 	dz := v2[2] - v1[2]
@@ -282,7 +283,7 @@ func VdistSqr(v1 []float32, v2 []float32) float32 {
 // / @return The distance between the point on the xz-plane.
 // /
 // / The vectors are projected onto the xz-plane, so the y-values are ignored.
-func Vdist2D(v1 []float32, v2 []float32) float32 {
+func Vdist2D(v1, v2 []float32) float32 {
 	dx := v2[0] - v1[0]
 	dz := v2[2] - v1[2]
 	return Sqrt(dx*dx + dz*dz)
@@ -292,7 +293,7 @@ func Vdist2D(v1 []float32, v2 []float32) float32 {
 // /  @param[in]		v1	A point. [(x, y, z)]
 // /  @param[in]		v2	A point. [(x, y, z)]
 // / @return The square of the distance between the point on the xz-plane.
-func Vdist2DSqr(v1 []float32, v2 []float32) float32 {
+func Vdist2DSqr(v1, v2 []float32) float32 {
 	dx := v2[0] - v1[0]
 	dz := v2[2] - v1[2]
 	return dx*dx + dz*dz
@@ -326,7 +327,7 @@ func Vnormalize(v []float32) float32 {
 // /
 // / Basically, this function will return true if the specified points are
 // / close enough to eachother to be considered colocated.
-func Vequal(p0 []float32, p1 []float32) bool {
+func Vequal(p0, p1 []float32) bool {
 	thr := Sqr(1.0 / 16384.0) // XXX: static variable optimization required
 	d := VdistSqr(p0, p1)
 	return d < thr
@@ -338,7 +339,7 @@ func Vequal(p0 []float32, p1 []float32) bool {
 // / @return The dot product on the xz-plane.
 // /
 // / The vectors are projected onto the xz-plane, so the y-values are ignored.
-func Vdot2D(u []float32, v []float32) float32 {
+func Vdot2D(u, v []float32) float32 {
 	return u[0]*v[0] + u[2]*v[2]
 }
 
@@ -348,7 +349,7 @@ func Vdot2D(u []float32, v []float32) float32 {
 // / @return The dot product on the xz-plane.
 // /
 // / The vectors are projected onto the xz-plane, so the y-values are ignored.
-func Vperp2D(u []float32, v []float32) float32 {
+func Vperp2D(u, v []float32) float32 {
 	return u[2]*v[0] - u[0]*v[2]
 }
 
@@ -370,7 +371,7 @@ func Vclamp(v []float32, min float32, max float32) {
 // /  @param[in]		b		Vertex B. [(x, y, z)]
 // /  @param[in]		c		Vertex C. [(x, y, z)]
 // / @return The signed xz-plane area of the triangle.
-func TriArea2D(a []float32, b []float32, c []float32) float32 {
+func TriArea2D(a, b, c []float32) float32 {
 	abx := b[0] - a[0]
 	abz := b[2] - a[2]
 	acx := c[0] - a[0]
@@ -385,7 +386,7 @@ func TriArea2D(a []float32, b []float32, c []float32) float32 {
 // /  @param[in]		bmax	Maximum bounds of box B. [(x, y, z)]
 // / @return True if the two AABB's overlap.
 // / @see dtOverlapBounds
-func OverlapQuantBounds(amin []uint32, amax []uint32, bmin []uint32, bmax []uint32) bool {
+func OverlapQuantBounds(amin, amax, bmin, bmax []uint32) bool {
 	overlap := true
 	if amin[0] > bmax[0] || amax[0] < bmin[0] {
 		overlap = false
@@ -406,7 +407,7 @@ func OverlapQuantBounds(amin []uint32, amax []uint32, bmin []uint32, bmax []uint
 // /  @param[in]		bmax	Maximum bounds of box B. [(x, y, z)]
 // / @return True if the two AABB's overlap.
 // / @see dtOverlapQuantBounds
-func OverlapBounds(amin []float32, amax []float32, bmin []float32, bmax []float32) bool {
+func OverlapBounds(amin, amax, bmin, bmax []float32) bool {
 	overlap := true
 	if amin[0] > bmax[0] || amax[0] < bmin[0] {
 		overlap = false
@@ -426,7 +427,7 @@ func OverlapBounds(amin []float32, amax []float32, bmin []float32, bmax []float3
 // /  @param[in]		a		Vertex A of triangle ABC. [(x, y, z)]
 // /  @param[in]		b		Vertex B of triangle ABC. [(x, y, z)]
 // /  @param[in]		c		Vertex C of triangle ABC. [(x, y, z)]
-func ClosestPtPointTriangle(closest []float32, p []float32, a []float32, b []float32, c []float32) {
+func ClosestPtPointTriangle(closest, p, a, b, c []float32) {
 	// Check if P in vertex region outside A
 	var ab, ac, ap [3]float32
 
@@ -512,7 +513,7 @@ func ClosestPtPointTriangle(closest []float32, p []float32, a []float32, b []flo
 // /  @param[in]		b		Vertex B of triangle ABC. [(x, y, z)]
 // /  @param[in]		c		Vertex C of triangle ABC. [(x, y, z)]
 // /  @param[out]	h		The resulting height.
-func ClosestHeightPointTriangle(p []float32, a []float32, b []float32, c []float32, h *float32) bool {
+func ClosestHeightPointTriangle(p, a, b, c []float32, h *float32) bool {
 	var v0, v1, v2 [3]float32
 	Vsub(v0[:], c, a)
 	Vsub(v1[:], b, a)
@@ -759,41 +760,11 @@ func NextPow2(v uint32) uint32 {
 	return v
 }
 
-func dtIlog2(v uint32) uint32 {
-	var r uint32
-	var shift uint32
-
-	var tv uint32
-	if v > 0xffff {
-		tv = 1
-	} else {
-		tv = 0
+func Ilog2(v uint32) uint32 {
+	if v == 0 {
+		return 0 // or handle as error
 	}
-	r = tv << 4
-	v >>= r
-	if v > 0xff {
-		tv = 1
-	} else {
-		tv = 0
-	}
-	shift = tv << 3
-	v >>= shift
-	r |= shift
-
-	if v > 0xf {
-		tv = 1
-	} else {
-		tv = 0
-	}
-	shift = tv << 2
-	v >>= shift
-	r |= shift
-
-	shift = tv << 1
-	v >>= shift
-	r |= shift
-	r |= (v >> 1)
-	return r
+	return uint32(31 - bits.LeadingZeros32(v))
 }
 
 func Align4(x int) int { return (x + 3) & ^3 }
