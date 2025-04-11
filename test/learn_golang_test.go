@@ -16,3 +16,11 @@ func TestMultipleAssignment(t *testing.T) {
 
 	assert.True(t, i == 11 && j == 10)
 }
+
+func TestFloatDiv(t *testing.T) {
+	var s float32 = 1.0 / 3
+	t.Log(s)
+
+	s2 := 1.0 / 3 // s2는 float64로 추론한다. 
+	t.Log(s2)
+}
